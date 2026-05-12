@@ -203,7 +203,7 @@ class _VarietiesScreenState extends State<VarietiesScreen> {
                       crossAxisCount: 2,
                       crossAxisSpacing: AppSpacing.md,
                       mainAxisSpacing: AppSpacing.md,
-                      childAspectRatio: 0.78,
+                      childAspectRatio: 0.68,
                     ),
                     itemCount: _filtered.length,
                     itemBuilder: (_, i) {
