@@ -1,9 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/theme.dart';
+import '../../services/weather_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  WeatherData? _weather;
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWeather();
+  }
+
+  Future<void> _loadWeather() async {
+    try {
+      final weather = await WeatherService.fetchWeather();
+      if (!mounted) return;
+      setState(() {
+        _weather = weather;
+        _loading = false;
+        _error = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = 'Could not load weather';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,57 +74,68 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        children: [
-          _LocationBar()
-              .animate()
-              .fadeIn(duration: 300.ms),
-          const SizedBox(height: AppSpacing.md),
-          _WeatherHero()
-              .animate()
-              .fadeIn(duration: 400.ms, delay: 100.ms)
-              .slideY(begin: 0.1, end: 0),
-          const SizedBox(height: AppSpacing.lg),
-          _AdviceCard()
-              .animate()
-              .fadeIn(duration: 400.ms, delay: 200.ms)
-              .slideY(begin: 0.1, end: 0),
-          const SizedBox(height: AppSpacing.xl),
-          Text(
-            "Today's tasks",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
-          ).animate().fadeIn(duration: 300.ms, delay: 300.ms),
-          const SizedBox(height: AppSpacing.md),
-          _TaskCard(
-            icon: Icons.water_drop_outlined,
-            iconColor: AppColors.sky,
-            iconBg: AppColors.skyLight,
-            title: 'Check seedling moisture',
-            subtitle: 'Soil should feel damp 2 cm down',
-            points: 10,
-          ).animate().fadeIn(duration: 300.ms, delay: 400.ms),
-          _TaskCard(
-            icon: Icons.camera_alt_outlined,
-            iconColor: AppColors.sunDark,
-            iconBg: AppColors.sunLight,
-            title: 'Scan your seedlings',
-            subtitle: 'Daily growth check',
-            points: 25,
-          ).animate().fadeIn(duration: 300.ms, delay: 500.ms),
-          _TaskCard(
-            icon: Icons.thermostat_outlined,
-            iconColor: AppColors.leafDark,
-            iconBg: AppColors.leafLight,
-            title: 'Log soil temperature',
-            subtitle: 'Ideal range 18\u201324\u00b0C',
-            points: 15,
-          ).animate().fadeIn(duration: 300.ms, delay: 600.ms),
-        ],
+      body: RefreshIndicator(
+        color: AppColors.tomato,
+        onRefresh: () async {
+          setState(() => _loading = true);
+          await _loadWeather();
+        },
+        child: ListView(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          children: [
+            _LocationBar()
+                .animate()
+                .fadeIn(duration: 300.ms),
+            const SizedBox(height: AppSpacing.md),
+            _WeatherHero(
+              loading: _loading,
+              error: _error,
+              weather: _weather,
+            )
+                .animate()
+                .fadeIn(duration: 400.ms, delay: 100.ms)
+                .slideY(begin: 0.1, end: 0),
+            const SizedBox(height: AppSpacing.lg),
+            _AdviceCard(weather: _weather)
+                .animate()
+                .fadeIn(duration: 400.ms, delay: 200.ms)
+                .slideY(begin: 0.1, end: 0),
+            const SizedBox(height: AppSpacing.xl),
+            Text(
+              "Today's tasks",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ).animate().fadeIn(duration: 300.ms, delay: 300.ms),
+            const SizedBox(height: AppSpacing.md),
+            _TaskCard(
+              icon: Icons.water_drop_outlined,
+              iconColor: AppColors.sky,
+              iconBg: AppColors.skyLight,
+              title: 'Check seedling moisture',
+              subtitle: 'Soil should feel damp 2 cm down',
+              points: 10,
+            ).animate().fadeIn(duration: 300.ms, delay: 400.ms),
+            _TaskCard(
+              icon: Icons.camera_alt_outlined,
+              iconColor: AppColors.sunDark,
+              iconBg: AppColors.sunLight,
+              title: 'Scan your seedlings',
+              subtitle: 'Daily growth check',
+              points: 25,
+            ).animate().fadeIn(duration: 300.ms, delay: 500.ms),
+            _TaskCard(
+              icon: Icons.thermostat_outlined,
+              iconColor: AppColors.leafDark,
+              iconBg: AppColors.leafLight,
+              title: 'Log soil temperature',
+              subtitle: 'Ideal range 18\u201324\u00b0C',
+              points: 15,
+            ).animate().fadeIn(duration: 300.ms, delay: 600.ms),
+          ],
+        ),
       ),
     );
   }
@@ -121,6 +166,16 @@ class _LocationBar extends StatelessWidget {
 }
 
 class _WeatherHero extends StatelessWidget {
+  const _WeatherHero({
+    required this.loading,
+    required this.error,
+    required this.weather,
+  });
+
+  final bool loading;
+  final String? error;
+  final WeatherData? weather;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -141,25 +196,60 @@ class _WeatherHero extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                '17\u00b0',
-                style: TextStyle(
-                  fontSize: 44,
-                  fontWeight: FontWeight.w600,
+          if (loading)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: SizedBox(
+                width: 28,
+                height: 28,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
                   color: AppColors.tomatoDark,
-                  height: 1,
                 ),
               ),
-              const SizedBox(width: AppSpacing.md),
-              const Text('\u26c5', style: TextStyle(fontSize: 32)),
-            ],
-          ),
+            )
+          else if (error != null || weather == null)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  '\u2014',
+                  style: TextStyle(
+                    fontSize: 44,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.tomatoDark,
+                    height: 1,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                const Icon(Icons.cloud_off,
+                    size: 28, color: AppColors.tomatoDark),
+              ],
+            )
+          else
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  weather!.tempDisplay,
+                  style: TextStyle(
+                    fontSize: 44,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.tomatoDark,
+                    height: 1,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Text(weather!.emoji, style: const TextStyle(fontSize: 32)),
+              ],
+            ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'Partly cloudy \u00b7 rain tomorrow afternoon',
+            loading
+                ? 'Fetching London weather\u2026'
+                : (error != null || weather == null)
+                    ? 'Pull down to retry'
+                    : '${weather!.condition.substring(0, 1).toUpperCase()}${weather!.condition.substring(1)} \u00b7 tomorrow ${weather!.tomorrowMaxTemp.round()}\u00b0',
             style: TextStyle(
               color: AppColors.tomatoDark,
               fontSize: 13,
@@ -172,8 +262,16 @@ class _WeatherHero extends StatelessWidget {
 }
 
 class _AdviceCard extends StatelessWidget {
+  const _AdviceCard({required this.weather});
+  final WeatherData? weather;
+
   @override
   Widget build(BuildContext context) {
+    final title = weather?.adviceTitle ?? 'Check soil moisture daily';
+    final body = weather?.adviceBody ??
+        'Touch the soil 2 cm down. If dry, water lightly at the base.';
+    final showRain = weather?.willRainTomorrow ?? false;
+
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
@@ -186,8 +284,8 @@ class _AdviceCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.water_drop_outlined,
+          Icon(
+            showRain ? Icons.umbrella_outlined : Icons.water_drop_outlined,
             size: 22,
             color: AppColors.skyDark,
           ),
@@ -197,7 +295,7 @@ class _AdviceCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Skip watering today',
+                  title,
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
@@ -206,7 +304,7 @@ class _AdviceCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Rain expected tomorrow will cover your Cherokee Carbon seedlings',
+                  body,
                   style: TextStyle(
                     color: AppColors.skyDark.withValues(alpha: 0.85),
                     fontSize: 13,
