@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "849536775476",
+    "project_id": "tomato-companion",
+    "storage_bucket": "tomato-companion.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:849536775476:android:ac4a5981fae7e352e6a161",
+        "android_client_info": {
+          "package_name": "com.madina.tomato_companion"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC1ex47PCPf0Opll028ZXODJdgxb7EmjAI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
