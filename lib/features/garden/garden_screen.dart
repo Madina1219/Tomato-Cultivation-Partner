@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/theme.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
+import 'plant_detail_screen.dart';
 
 /// GardenScreen lists the user's tomato plants from Firestore in real-time.
 /// Plants are stored at /users/{uid}/plants/{plantId} and protected by
@@ -86,12 +87,29 @@ class _GardenScreenState extends State<GardenScreen> {
               // Empty state when no plants exist.
               if (plants.isEmpty) _buildEmptyState(),
 
-              // One card per plant. Each card is the existing _PlantCard
-              // widget fed by Firestore data.
-              ...plants.map((p) => Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                    child: _plantCardFromFirestore(p),
-                  )),
+              // One card per plant. Each card is now wrapped in a tappable
+              // Hero widget so it can morph into a detail screen on tap.
+              // The staggered animation makes cards fade in one by one.
+              ...plants.asMap().entries.map((entry) {
+                final i = entry.key;
+                final p = entry.value;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                  child: _tappablePlantCard(context, p)
+                      .animate()
+                      .fadeIn(
+                        duration: 400.ms,
+                        delay: (100 * i).ms,
+                      )
+                      .slideY(
+                        begin: 0.1,
+                        end: 0,
+                        duration: 400.ms,
+                        delay: (100 * i).ms,
+                        curve: Curves.easeOutCubic,
+                      ),
+                );
+              }),
 
               const SizedBox(height: AppSpacing.xl),
 
@@ -206,6 +224,58 @@ class _GardenScreenState extends State<GardenScreen> {
       badgeBg: badgeBg,
       nextStep: _nextStepForStage(stage),
       emoji: emoji,
+    );
+  }
+
+  /// Tappable wrapper for a plant card.
+  ///
+  /// Builds the same _PlantCard, then wraps it in a Hero widget (for
+  /// shared element transitions when navigating to the detail screen)
+  /// and a GestureDetector (for tap-to-navigate gesture recognition).
+  /// The Hero tag is unique per plant — uses the Firestore document ID
+  /// if available, otherwise falls back to a composite of variety + dayCount.
+  Widget _tappablePlantCard(BuildContext context, Map<String, dynamic> data) {
+    final card = _plantCardFromFirestore(data);
+    final variety = (data['variety'] as String?) ?? 'Unnamed plant';
+    final dayCount = (data['dayCount'] as num?)?.toInt() ?? 0;
+    final totalDays = (data['totalDays'] as num?)?.toInt() ?? 75;
+    final stage = (data['stage'] as String?) ?? 'Seedling';
+    final progress = totalDays == 0
+        ? 0.0
+        : (dayCount / totalDays).clamp(0.0, 1.0).toDouble();
+
+    final heroTag =
+        'plant_${(data['id'] as String?) ?? '${variety}_$dayCount'}';
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => PlantDetailScreen(
+              heroTag: heroTag,
+              name: variety,
+              stage: stage,
+              dayNumber: dayCount,
+              totalDays: totalDays,
+              progress: progress,
+              progressColor: card.progressColor,
+              badge: card.badge,
+              badgeColor: card.badgeColor,
+              badgeBg: card.badgeBg,
+              nextStep: card.nextStep,
+              emoji: card.emoji,
+            ),
+          ),
+        );
+      },
+      child: Hero(
+        tag: heroTag,
+        child: Material(
+          color: Colors.transparent,
+          child: card,
+        ),
+      ),
     );
   }
 
@@ -416,7 +486,8 @@ class _PlantCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
-              const Icon(Icons.arrow_forward, size: 14, color: AppColors.textSecondary),
+              const Icon(Icons.arrow_forward,
+                  size: 14, color: AppColors.textSecondary),
               const SizedBox(width: 4),
               Text(
                 'Next: $nextStep',
@@ -579,7 +650,6 @@ class _AddPlantSheetState extends State<_AddPlantSheet> {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: AppSpacing.lg),
-
           TextField(
             controller: _varietyController,
             textCapitalization: TextCapitalization.words,
@@ -590,7 +660,6 @@ class _AddPlantSheetState extends State<_AddPlantSheet> {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-
           DropdownButtonFormField<String>(
             initialValue: _stage,
             decoration: const InputDecoration(
@@ -603,7 +672,6 @@ class _AddPlantSheetState extends State<_AddPlantSheet> {
             onChanged: (v) => setState(() => _stage = v ?? 'Seedling'),
           ),
           const SizedBox(height: AppSpacing.md),
-
           TextField(
             controller: _dayController,
             keyboardType: TextInputType.number,
@@ -613,7 +681,6 @@ class _AddPlantSheetState extends State<_AddPlantSheet> {
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
-
           SizedBox(
             width: double.infinity,
             child: FilledButton(
