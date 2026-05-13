@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/theme.dart';
 import '../../services/weather_service.dart';
+import '../../services/location_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,6 +15,8 @@ class _HomeScreenState extends State<HomeScreen> {
   WeatherData? _weather;
   bool _loading = true;
   String? _error;
+  final LocationService _locationService = LocationService();
+  UserLocation? _location;
 
   @override
   void initState() {
@@ -21,9 +24,18 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadWeather();
   }
 
-  Future<void> _loadWeather() async {
-    try {
-      final weather = await WeatherService.fetchWeather();
+ Future<void> _loadWeather() async {
+  try {
+      // 1. Resolve the user's location (real GPS, or London fallback).
+      final location = await _locationService.getCurrentLocation();
+      if (!mounted) return;
+      setState(() => _location = location);
+
+      // 2. Fetch weather for the resolved coordinates.
+      final weather = await WeatherService.fetchWeather(
+        latitude: location.latitude,
+        longitude: location.longitude,
+      );
       if (!mounted) return;
       setState(() {
         _weather = weather;
@@ -83,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
-            _LocationBar()
+            _LocationBar(cityName: _location?.cityName ?? 'Locating\u2026')
                 .animate()
                 .fadeIn(duration: 300.ms),
             const SizedBox(height: AppSpacing.md),
@@ -142,6 +154,10 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class _LocationBar extends StatelessWidget {
+
+  const _LocationBar({required this.cityName});
+
+  final String cityName;
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -153,7 +169,7 @@ class _LocationBar extends StatelessWidget {
         ),
         const SizedBox(width: 4),
         Text(
-          'London, UK \u00b7 May',
+          '$cityName \u00b7 ${_currentMonth()}',
           style: TextStyle(
             color: AppColors.textSecondary,
             fontSize: 13,
@@ -162,6 +178,14 @@ class _LocationBar extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _currentMonth() {
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December',
+    ];
+    return months[DateTime.now().month - 1];
   }
 }
 
