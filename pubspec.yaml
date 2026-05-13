@@ -20,6 +20,9 @@ dependencies:
   # Networking
   http: ^1.2.2
 
+  # Image picking
+  image_picker: ^1.1.2
+
   # Location
   geolocator: ^14.0.2
   permission_handler: ^11.3.1

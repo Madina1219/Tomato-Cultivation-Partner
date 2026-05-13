@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import '../../core/theme.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../services/claude_service.dart';
 
+/// The Scan tab — take or pick a photo of a tomato plant,
+/// send it to Claude, and display friendly care guidance.
 class ScanScreen extends StatefulWidget {
   const ScanScreen({super.key});
 
@@ -10,431 +13,232 @@ class ScanScreen extends StatefulWidget {
 }
 
 class _ScanScreenState extends State<ScanScreen> {
-  String _selectedStage = 'Seedling';
-  bool _scanning = false;
-  bool _showResult = false;
+  final ImagePicker _picker = ImagePicker();
+  final ClaudeService _claudeService = ClaudeService();
 
-  static const _stages = [
-    'Seedling',
-    'Seed',
-    'Leaves',
-    'Flower',
-    'Fruit',
-    'Soil',
-  ];
+  File? _selectedImage;
+  String? _analysisResult;
+  String? _errorMessage;
+  bool _isAnalyzing = false;
 
-  Future<void> _runScan() async {
-    setState(() {
-      _scanning = true;
-      _showResult = false;
-    });
-    await Future.delayed(const Duration(seconds: 2));
-    if (!mounted) return;
-    setState(() {
-      _scanning = false;
-      _showResult = true;
-    });
+  /// Let the user pick a photo from camera or gallery.
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: source,
+        maxWidth: 1024, // Resize so we don't send huge files to Claude
+        imageQuality: 85,
+      );
+
+      if (pickedFile == null) return; // User cancelled
+
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+        _analysisResult = null;
+        _errorMessage = null;
+      });
+
+      // Auto-trigger analysis after picking
+      await _analyzeImage();
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Could not pick image: $e';
+      });
+    }
   }
 
-  void _resetScan() {
+  /// Send the selected image to Claude and get the analysis.
+  Future<void> _analyzeImage() async {
+    if (_selectedImage == null) return;
+
     setState(() {
-      _showResult = false;
-      _scanning = false;
+      _isAnalyzing = true;
+      _errorMessage = null;
     });
+
+    try {
+      final result = await _claudeService.analyzeTomato(
+        imageFile: _selectedImage!,
+      );
+
+      setState(() {
+        _analysisResult = result;
+        _isAnalyzing = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+        _isAnalyzing = false;
+      });
+    }
+  }
+
+  /// Show a sheet to pick camera or gallery.
+  void _showImageSourceSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Take photo'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Pick from gallery'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Scan and diagnose'),
-        leading: _showResult
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: _resetScan,
+        title: const Text('Scan your tomato 🍅'),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Image preview area
+            if (_selectedImage != null)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.file(
+                  _selectedImage!,
+                  height: 300,
+                  fit: BoxFit.cover,
+                ),
               )
-            : null,
-      ),
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 400),
-        transitionBuilder: (child, animation) {
-          return FadeTransition(opacity: animation, child: child);
-        },
-        child: _showResult
-            ? _ResultView(stage: _selectedStage, key: const ValueKey('result'))
-            : _ScanView(
-                key: const ValueKey('scan'),
-                stages: _stages,
-                selectedStage: _selectedStage,
-                onStageChanged: (s) => setState(() => _selectedStage = s),
-                scanning: _scanning,
-                onCapture: _runScan,
-              ),
-      ),
-    );
-  }
-}
-
-class _ScanView extends StatelessWidget {
-  const _ScanView({
-    super.key,
-    required this.stages,
-    required this.selectedStage,
-    required this.onStageChanged,
-    required this.scanning,
-    required this.onCapture,
-  });
-
-  final List<String> stages;
-  final String selectedStage;
-  final ValueChanged<String> onStageChanged;
-  final bool scanning;
-  final VoidCallback onCapture;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      children: [
-        Text(
-          'Snap your seed, seedling, leaves or fruit. The AI will tell you what to do.',
-          style: TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 13,
-            height: 1.4,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        SizedBox(
-          height: 36,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: stages.length,
-            separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
-            itemBuilder: (_, i) {
-              final stage = stages[i];
-              final selected = stage == selectedStage;
-              return GestureDetector(
-                onTap: () => onStageChanged(stage),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.sm,
-                  ),
-                  decoration: BoxDecoration(
-                    color: selected ? AppColors.tomatoLight : AppColors.surface,
-                    borderRadius: BorderRadius.circular(AppRadius.pill),
-                    border: Border.all(
-                      color: selected ? AppColors.tomato : AppColors.border,
-                      width: 0.5,
-                    ),
-                  ),
-                  child: Text(
-                    stage,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: selected
-                          ? AppColors.tomatoDark
-                          : AppColors.textSecondary,
-                    ),
+            else
+              Container(
+                height: 300,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.eco, size: 60, color: Colors.green),
+                      SizedBox(height: 12),
+                      Text(
+                        'Tap below to scan\nyour tomato plant',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ],
                   ),
                 ),
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        AspectRatio(
-          aspectRatio: 3 / 4,
-          child: Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFF2C2C2A),
-              borderRadius: BorderRadius.circular(AppRadius.lg),
+              ),
+
+            const SizedBox(height: 20),
+
+            // Scan button
+            ElevatedButton.icon(
+              onPressed: _isAnalyzing ? null : _showImageSourceSheet,
+              icon: const Icon(Icons.camera_alt),
+              label: const Text('Scan tomato'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                textStyle: const TextStyle(fontSize: 18),
+              ),
             ),
-            child: Center(
-              child: scanning
-                  ? const Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                        SizedBox(height: 12),
+
+            const SizedBox(height: 24),
+
+            // Loading state
+            if (_isAnalyzing)
+              const Padding(
+                padding: EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text(
+                      'Looking at your tomato... 🌱',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
+
+            // Error state
+            if (_errorMessage != null)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.red[200]!),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.red),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _errorMessage!,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            // Result state
+            if (_analysisResult != null && !_isAnalyzing)
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.green[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.green[200]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: const [
+                        Icon(Icons.eco, color: Colors.green),
+                        SizedBox(width: 8),
                         Text(
-                          'Analysing...',
+                          'Companion says',
                           style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
                           ),
                         ),
                       ],
-                    )
-                  : Text(
-                      'Hold steady. Point at one plant.',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        fontSize: 13,
-                      ),
                     ),
-            ),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: scanning ? null : onCapture,
-                icon: const Icon(Icons.camera_alt, size: 18),
-                label: const Text('Capture'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.tomato,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                  ),
+                    const SizedBox(height: 12),
+                    Text(
+                      _analysisResult!,
+                      style: const TextStyle(fontSize: 15, height: 1.5),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: scanning ? null : () {},
-                icon: const Icon(Icons.upload, size: 18),
-                label: const Text('Upload'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.textPrimary,
-                  side: BorderSide(color: AppColors.border, width: 0.5),
-                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                  ),
-                ),
-              ),
-            ),
           ],
         ),
-        const SizedBox(height: AppSpacing.md),
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: AppColors.skyLight,
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            border: Border(left: BorderSide(color: AppColors.sky, width: 3)),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.info_outline,
-                  size: 18, color: AppColors.skyDark),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  'Each scan earns 25 pts. Daily scans build your growth diary.',
-                  style: TextStyle(
-                    color: AppColors.skyDark,
-                    fontSize: 12,
-                    height: 1.4,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ResultView extends StatelessWidget {
-  const _ResultView({super.key, required this.stage});
-  final String stage;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      children: [
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          decoration: BoxDecoration(
-            color: AppColors.leafLight,
-            borderRadius: BorderRadius.circular(AppRadius.md),
-          ),
-          child: Row(
-            children: [
-              const Text('OK', style: TextStyle(fontSize: 36)),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Healthy $stage detected',
-                      style: TextStyle(
-                        color: AppColors.leafDark,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Cherokee Carbon, day 18 of 75',
-                      style: TextStyle(
-                        color: AppColors.leafDark.withValues(alpha: 0.85),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: 2,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.leaf,
-                  borderRadius: BorderRadius.circular(AppRadius.pill),
-                ),
-                child: const Text(
-                  '94%',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
-        const SizedBox(height: AppSpacing.lg),
-        const Text(
-          'What to do today',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        _ActionCard(
-          icon: Icons.water_drop_outlined,
-          bg: AppColors.skyLight,
-          dark: AppColors.skyDark,
-          title: 'Water lightly',
-          body: 'Soil is dry 2 cm down. Use 50 ml at the base.',
-        ).animate().fadeIn(duration: 400.ms, delay: 100.ms),
-        _ActionCard(
-          icon: Icons.wb_sunny_outlined,
-          bg: AppColors.sunLight,
-          dark: AppColors.sunDark,
-          title: 'Move out of direct sun',
-          body: 'Forecast shows 22 degrees this afternoon, too hot for tender seedlings.',
-        ).animate().fadeIn(duration: 400.ms, delay: 200.ms),
-        _ActionCard(
-          icon: Icons.event_outlined,
-          bg: AppColors.leafLight,
-          dark: AppColors.leafDark,
-          title: 'Plan ahead',
-          body: 'Ready to transplant in 3 weeks once nights stay above 12 degrees.',
-        ).animate().fadeIn(duration: 400.ms, delay: 300.ms),
-        const SizedBox(height: AppSpacing.lg),
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: AppColors.sunLight,
-            borderRadius: BorderRadius.circular(AppRadius.md),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.stars, color: AppColors.sunDark),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '+25 points earned',
-                      style: TextStyle(
-                        color: AppColors.sunDark,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                      ),
-                    ),
-                    Text(
-                      '3-day streak, +5 bonus',
-                      style: TextStyle(
-                        color: AppColors.sunDark.withValues(alpha: 0.7),
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ).animate().fadeIn(duration: 400.ms, delay: 400.ms),
-      ],
-    );
-  }
-}
-
-class _ActionCard extends StatelessWidget {
-  const _ActionCard({
-    required this.icon,
-    required this.bg,
-    required this.dark,
-    required this.title,
-    required this.body,
-  });
-
-  final IconData icon;
-  final Color bg;
-  final Color dark;
-  final String title;
-  final String body;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border(left: BorderSide(color: dark, width: 3)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: dark, size: 20),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: dark,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  body,
-                  style: TextStyle(
-                    color: dark.withValues(alpha: 0.85),
-                    fontSize: 12,
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
