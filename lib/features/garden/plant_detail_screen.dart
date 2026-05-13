@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../core/theme.dart';
 
 /// Detail screen for a single tomato plant.
-///
 /// Receives plant data from the Garden tab and animates in with a
 /// Hero transition for the plant's emoji + name. The Hero tag matches
 /// the tag set on the source card in garden_screen.dart so Flutter can
