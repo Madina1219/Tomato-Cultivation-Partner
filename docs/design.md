@@ -1,6 +1,6 @@
 # 🎨 Design Document — Tomato Companion
 
-> **CASA0015 — Mobile Systems & Interactions**
+> **CASA0015 - Mobile Systems & Interactions**
 > Personas, storyboards, user journeys, and design principles
 > Author: Madina Aliyeva · 2025/26
 
@@ -48,12 +48,12 @@ Three sub-questions guided design decisions:
 
 ## 3. User personas
 
-### 👩‍🎓 Persona 1 — Madina, the Sustainability-Minded Student
+### 👩‍🎓 Persona 1 - Maya, the Sustainability-Minded Student
 
 ```
 ┌────────────────────────────────────────────────────────────┐
 │                                                            │
-│   🎓  MADINA   ·   age 24   ·   London, UK                  │
+│   🎓  MAYA   ·   age 24   ·   London, UK                  │
 │                                                            │
 │   ╔════════════════╗                                       │
 │   ║                ║   "I just want to grow ONE tomato     │
@@ -98,12 +98,12 @@ MSc student at UCL, lives in a 4th-floor flat with one south-facing window. Brou
 
 ---
 
-### 👨‍👧 Persona 2 — Tomas, the Time-Pressed Allotment Dad
+### 👨‍👧 Persona 2 — Greg, the Time-Pressed Allotment Dad
 
 ```
 ┌────────────────────────────────────────────────────────────┐
 │                                                            │
-│   🧑‍💼  TOMAS   ·   age 42   ·   Reading, UK                  │
+│   🧑‍💼  Greg   ·   age 67   ·   Reading, UK                  │
 │                                                            │
 │   ╔════════════════╗                                       │
 │   ║                ║   "I've got 30 minutes on Saturday    │
@@ -115,7 +115,7 @@ MSc student at UCL, lives in a 4th-floor flat with one south-facing window. Brou
 ```
 
 **Background**
-Father of two (ages 6 and 9), works in IT for a mid-sized firm, has a half-plot allotment 10 minutes from home. Grew up watching his dad garden in Slovakia. Wants his kids to grow up knowing where food comes from.
+Father of two (ages 9 and 12), works in IT for a mid-sized firm, has a half-plot allotment 10 minutes from home. Grew up watching his dad garden in Slovakia. Wants his kids to grow up knowing where food comes from.
 
 **Goals**
 - Maintain 4–6 tomato plants across the season with minimal time
@@ -151,7 +151,7 @@ Father of two (ages 6 and 9), works in IT for a mid-sized firm, has a half-plot 
 
 ## 4. Empathy maps
 
-### Empathy map — Madina
+### Empathy map — Maya
 
 | Quadrant | Content |
 |---|---|
@@ -162,7 +162,7 @@ Father of two (ages 6 and 9), works in IT for a mid-sized firm, has a half-plot 
 | **🟢 Pains** | Information overload · Conflicting advice · No real-time validation · Time-poor with dissertation · Lives alone |
 | **🟡 Gains** | A working harvest · A connection to her grandmother · A skill to share · Less supermarket spend · Therapy through nature |
 
-### Empathy map — Tomas
+### Empathy map — Greg
 
 | Quadrant | Content |
 |---|---|
@@ -179,7 +179,7 @@ Father of two (ages 6 and 9), works in IT for a mid-sized firm, has a half-plot 
 
 Three storyboards illustrate the most important user journeys in the app.
 
-### Storyboard 1 — Madina's First Scan (the magic moment)
+### Storyboard 1 — Maya's First Scan (the magic moment)
 
 The pivotal experience: a beginner's first encounter with AI plant guidance.
 
@@ -237,7 +237,7 @@ The pivotal experience: a beginner's first encounter with AI plant guidance.
 - **Frame 8**: First word is a compliment using the user's name. This is the **emotional payoff** the entire app is built around.
 - **Frames 9–10**: Knowledge transfer happens *because* of the trust earned in Frame 8.
 
-### Storyboard 2 — Tomas's Saturday morning check-in
+### Storyboard 2 — Greg's Saturday morning check-in
 
 The returning user with constraints: minimal time, multiple plants, decision fatigue.
 
@@ -334,7 +334,7 @@ How the gamification layer drives long-term retention.
 
 ## 6. User journey map
 
-End-to-end Madina journey across the 75-day growth cycle.
+End-to-end Maya's journey across the 75-day growth cycle.
 
 ```
 PHASE             DAY 0          DAY 14         DAY 30         DAY 50         DAY 75
@@ -460,4 +460,4 @@ Weather, location, and time of year are present but never the protagonist. They 
 
 ---
 
-*Last updated: 14 May 2026 · Tomato Companion v0.9*
+
