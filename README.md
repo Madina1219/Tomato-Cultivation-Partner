@@ -23,9 +23,9 @@
 
 1. [About this app](#-about-this-app)
 2. [Demo video](#-demo-video)
-3. [The user — meet Maya](#-the-user--meet-maya)
-4. [Storyboard — Maya's journey](#-storyboard--mayas-journey)
-5. [Screenshots — real Samsung A17 5G](#-screenshots--real-device-samsung-a17-5g)
+3. [The user - meet Maya](#-the-user--meet-maya)
+4. [Storyboard - Maya's journey](#-storyboard--mayas-journey)
+5. [Screenshots - real Samsung A17 5G](#-screenshots--real-device-samsung-a17-5g)
 6. [Features](#-features)
 7. [Architecture & technology stack](#%EF%B8%8F-architecture--technology-stack)
 8. [Installation](#-installation)
@@ -44,7 +44,7 @@
 The app combines:
 
 - 🌤️ **Live local weather** from Open-Meteo, mapped to *what to do today*
-- 📸 **Claude vision diagnosis** — point your camera at any plant, get conversational AI advice
+- 📸 **Claude vision diagnosis** - point your camera at any plant, get conversational AI advice
 - 🍅 **27 curated tomato varieties** matched to growing locations
 - 🌿 **Per-plant garden tracking** from seedling to harvest
 - 🎁 **A rewards loop** that redeems for real partners (B&Q, Royal Horticultural Society)
