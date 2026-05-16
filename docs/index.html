@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tomato Companion - Growing tomatoes, guided.</title>
+<meta name="description" content="A Flutter app that turns growing tomatoes from guesswork into a guided journey. CASA0015 · UCL CASA · 2025/26.">
+<meta property="og:title" content="Tomato Companion">
+<meta property="og:description" content="A Flutter app that turns growing tomatoes from guesswork into a guided journey.">
+<meta property="og:image" content="https://i.ytimg.com/vi/RDK8aizjWwA/maxresdefault.jpg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --tomato-50: #FFF8F0;
+  --tomato-100: #FFE8DC;
+  --tomato-200: #FFD0BC;
+  --tomato-300: #FFB39E;
+  --tomato-500: #E84B3D;
+  --tomato-600: #C73B2E;
+  --tomato-700: #B83025;
+  --tomato-900: #6B1A12;
+  --leaf-500: #5BA84F;
+  --leaf-700: #3A8030;
+  --ink: #2A1F1A;
+  --ink-soft: #5A4A40;
+  --cream: #FFF8F0;
+  --cream-deep: #F5EAD8;
+  --paper: #FFFCF7;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Manrope', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Subtle paper texture overlay using SVG noise */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.85' numOctaves='2' /></filter><rect width='200' height='200' filter='url(%23n)' opacity='0.04'/></svg>");
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ============ NAV ============ */
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 248, 240, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--tomato-100);
+  padding: 1rem 2rem;
+}
+
+.nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: 'Fraunces', serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--tomato-700);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+}
+
+.nav-logo-icon {
+  font-size: 1.5rem;
+  animation: gentle-rotate 8s ease-in-out infinite;
+  display: inline-block;
+}
+
+@keyframes gentle-rotate {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+.nav-links {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+.nav-links a {
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover { color: var(--tomato-500); }
+
+.nav-cta {
+  background: var(--tomato-500);
+  color: white !important;
+  padding: 0.6rem 1.2rem;
+  border-radius: 100px;
+  font-size: 0.9rem;
+  transition: all 0.2s !important;
+}
+
+.nav-cta:hover {
+  background: var(--tomato-700) !important;
+  transform: translateY(-1px);
+  color: white !important;
+}
+
+@media (max-width: 700px) {
+  .nav-links { gap: 1rem; }
+  .nav-links a:not(.nav-cta) { display: none; }
+}
+
+/* ============ HERO ============ */
+.hero {
+  position: relative;
+  min-height: 90vh;
+  display: flex;
+  align-items: center;
+  padding: 4rem 2rem;
+  background:
+    radial-gradient(ellipse at top right, var(--tomato-100) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom left, var(--cream-deep) 0%, transparent 50%),
+    var(--cream);
+  overflow: hidden;
+}
+
+.hero-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+@media (max-width: 900px) {
+  .hero-inner { grid-template-columns: 1fr; text-align: center; }
+}
+
+.hero-tag {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--tomato-700);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  padding: 0.4rem 1rem;
+  background: var(--tomato-100);
+  border-radius: 100px;
+}
+
+.hero h1 {
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: clamp(2.8rem, 6vw, 5rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  margin-bottom: 1.5rem;
+}
+
+.hero h1 em {
+  font-style: italic;
+  color: var(--tomato-500);
+  font-weight: 500;
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  color: var(--ink-soft);
+  margin-bottom: 2.5rem;
+  max-width: 560px;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) { .hero-subtitle { margin-left: auto; margin-right: auto; } }
+
+.hero-cta-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 900px) { .hero-cta-row { justify-content: center; } }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1rem 1.8rem;
+  border-radius: 100px;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--tomato-500);
+  color: white;
+  box-shadow: 0 6px 20px rgba(232, 75, 61, 0.25);
+}
+
+.btn-primary:hover {
+  background: var(--tomato-700);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(232, 75, 61, 0.35);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--ink);
+  border: 2px solid var(--ink);
+}
+
+.btn-secondary:hover {
+  background: var(--ink);
+  color: var(--cream);
+  transform: translateY(-2px);
+}
+
+.hero-meta {
+  margin-top: 3rem;
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 900px) { .hero-meta { justify-content: center; } }
+
+.hero-meta strong { color: var(--ink); font-weight: 600; }
+
+/* Hero illustration */
+.hero-illustration {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.hero-tomato {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 20px 40px rgba(232, 75, 61, 0.25));
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+.hero-decoration {
+  position: absolute;
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  color: var(--tomato-300);
+  font-size: 1rem;
+  font-weight: 300;
+  letter-spacing: 0.1em;
+}
+
+.hero-decoration-1 { top: 5%; right: -2%; transform: rotate(15deg); }
+.hero-decoration-2 { bottom: 8%; left: -3%; transform: rotate(-12deg); }
+
+/* ============ SECTION BASE ============ */
+section {
+  padding: 6rem 2rem;
+  position: relative;
+}
+
+.section-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+.section-eyebrow {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--tomato-700);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.section-title {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  margin-bottom: 1.5rem;
+}
+
+.section-title em {
+  font-style: italic;
+  color: var(--tomato-500);
+}
+
+.section-lede {
+  font-size: 1.2rem;
+  color: var(--ink-soft);
+  max-width: 720px;
+  line-height: 1.6;
+  margin-bottom: 3rem;
+}
+
+/* ============ VIDEO ============ */
+.video-section {
+  background: var(--paper);
+  border-top: 1px solid var(--tomato-100);
+  border-bottom: 1px solid var(--tomato-100);
+}
+
+.video-wrap {
+  max-width: 1000px;
+  margin: 3rem auto 0;
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(107, 26, 18, 0.15);
+}
+
+.video-wrap iframe {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  border: 0;
+}
+
+.video-caption {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+/* ============ PERSONA ============ */
+.persona-section {
+  background: var(--cream-deep);
+}
+
+.persona-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .persona-grid { grid-template-columns: 1fr; }
+}
+
+.persona-image {
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(107, 26, 18, 0.12);
+}
+
+.persona-quote {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 1.4rem;
+  line-height: 1.5;
+  color: var(--ink);
+  padding-left: 1.5rem;
+  border-left: 3px solid var(--tomato-500);
+  margin: 2rem 0;
+}
+
+/* ============ HOW IT WORKS ============ */
+.how-section {
+  background: var(--paper);
+}
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+@media (max-width: 900px) {
+  .steps-grid { grid-template-columns: 1fr; }
+}
+
+.step {
+  background: var(--cream);
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  border: 1px solid var(--tomato-100);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.step:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 50px rgba(107, 26, 18, 0.1);
+  border-color: var(--tomato-300);
+}
+
+.step-number {
+  font-family: 'Fraunces', serif;
+  font-size: 4rem;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--tomato-200);
+  line-height: 1;
+  margin-bottom: 1rem;
+}
+
+.step h3 {
+  font-family: 'Fraunces', serif;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.step p {
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
+.step-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  display: inline-block;
+}
+
+/* ============ STORYBOARD ============ */
+.storyboard-section {
+  background: var(--cream-deep);
+}
+
+.storyboard-image {
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(107, 26, 18, 0.12);
+  margin-top: 2rem;
+}
+
+/* ============ SCREENSHOTS ============ */
+.screenshots-section {
+  background: var(--cream);
+}
+
+.screenshots-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-top: 3rem;
+}
+
+@media (max-width: 1000px) {
+  .screenshots-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .screenshots-grid { grid-template-columns: 1fr; }
+}
+
+.shot {
+  background: var(--paper);
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 1px solid var(--tomato-100);
+}
+
+.shot:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 40px rgba(107, 26, 18, 0.1);
+}
+
+.shot img {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+.shot h4 {
+  font-family: 'Fraunces', serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  color: var(--ink);
+}
+
+.shot p {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+
+/* ============ TECH STACK ============ */
+.stack-section {
+  background: var(--ink);
+  color: var(--cream);
+}
+
+.stack-section .section-eyebrow { color: var(--tomato-300); }
+.stack-section .section-title { color: var(--cream); }
+.stack-section .section-lede { color: var(--tomato-100); opacity: 0.9; }
+
+.stack-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
+  margin-top: 3rem;
+}
+
+.stack-card {
+  background: rgba(255, 248, 240, 0.05);
+  border: 1px solid rgba(255, 248, 240, 0.15);
+  border-radius: 16px;
+  padding: 1.8rem;
+  transition: all 0.3s ease;
+}
+
+.stack-card:hover {
+  background: rgba(255, 248, 240, 0.1);
+  border-color: var(--tomato-300);
+  transform: translateY(-2px);
+}
+
+.stack-card h4 {
+  font-family: 'Fraunces', serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--cream);
+  margin-bottom: 0.5rem;
+}
+
+.stack-card p {
+  font-size: 0.9rem;
+  color: var(--tomato-200);
+  line-height: 1.5;
+}
+
+/* ============ CTA ============ */
+.cta-section {
+  background:
+    radial-gradient(ellipse at center, var(--tomato-100) 0%, var(--cream) 70%);
+  text-align: center;
+  padding: 8rem 2rem;
+}
+
+.cta-section .section-title { margin-left: auto; margin-right: auto; }
+
+.cta-section .hero-cta-row {
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+/* ============ FOOTER ============ */
+footer {
+  background: var(--ink);
+  color: var(--tomato-100);
+  padding: 4rem 2rem 2rem;
+  font-size: 0.9rem;
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 3rem;
+}
+
+@media (max-width: 700px) {
+  .footer-inner { grid-template-columns: 1fr; gap: 2rem; }
+}
+
+.footer-brand {
+  font-family: 'Fraunces', serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--cream);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.footer-bio {
+  line-height: 1.6;
+  opacity: 0.7;
+}
+
+.footer-col h5 {
+  font-family: 'Fraunces', serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--cream);
+  margin-bottom: 1rem;
+  letter-spacing: 0.05em;
+}
+
+.footer-col ul {
+  list-style: none;
+}
+
+.footer-col li {
+  margin-bottom: 0.6rem;
+}
+
+.footer-col a {
+  color: var(--tomato-100);
+  opacity: 0.7;
+  text-decoration: none;
+  transition: opacity 0.2s, color 0.2s;
+}
+
+.footer-col a:hover {
+  opacity: 1;
+  color: var(--tomato-300);
+}
+
+.footer-bottom {
+  max-width: 1200px;
+  margin: 3rem auto 0;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 248, 240, 0.1);
+  text-align: center;
+  font-size: 0.85rem;
+  opacity: 0.6;
+  line-height: 1.6;
+}
+
+/* ============ ANIMATIONS ============ */
+.fade-up {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.fade-up.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav>
+  <div class="nav-inner">
+    <a href="#top" class="nav-logo">
+      <span class="nav-logo-icon">🍅</span> Tomato Companion
+    </a>
+    <div class="nav-links">
+      <a href="#demo">Demo</a>
+      <a href="#how">How it works</a>
+      <a href="#screens">Screens</a>
+      <a href="https://github.com/Madina1219/Tomato-Cultivation-Partner" target="_blank" rel="noopener" class="nav-cta">GitHub →</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="top">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <span class="hero-tag">CASA0015 · UCL CASA · 2025/26</span>
+      <h1>Growing tomatoes,<br><em>guided.</em></h1>
+      <p class="hero-subtitle">
+        A Flutter app that turns growing tomatoes from anxious guesswork into a guided journey — with live local weather, AI plant diagnosis, and 27 curated varieties for UK growers.
+      </p>
+      <div class="hero-cta-row">
+        <a href="#demo" class="btn btn-primary">▶ Watch the demo</a>
+        <a href="https://github.com/Madina1219/Tomato-Cultivation-Partner" target="_blank" rel="noopener" class="btn btn-secondary">View on GitHub</a>
+      </div>
+      <div class="hero-meta">
+        <span>📱 <strong>Android · iOS</strong></span>
+        <span>🤖 <strong>Claude vision</strong> integrated</span>
+        <span>🌍 <strong>Open-Meteo</strong> live weather</span>
+      </div>
+    </div>
+    <div class="hero-illustration">
+      <span class="hero-decoration hero-decoration-1">grow with us</span>
+      <span class="hero-decoration hero-decoration-2">~ since 2026</span>
+      <svg class="hero-tomato" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="tomatoGrad" cx="40%" cy="35%" r="70%">
+            <stop offset="0%" stop-color="#FF6B5A"/>
+            <stop offset="55%" stop-color="#E84B3D"/>
+            <stop offset="100%" stop-color="#B83025"/>
+          </radialGradient>
+          <radialGradient id="highlight" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.65"/>
+            <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="leafGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#6BB85C"/>
+            <stop offset="100%" stop-color="#3A8030"/>
+          </linearGradient>
+        </defs>
+        <ellipse cx="512" cy="590" rx="360" ry="330" fill="url(#tomatoGrad)"/>
+        <ellipse cx="380" cy="450" rx="130" ry="85" fill="url(#highlight)"/>
+        <ellipse cx="360" cy="430" rx="55" ry="35" fill="#FFFFFF" opacity="0.45"/>
+        <g transform="translate(512, 300)">
+          <path d="M 0 0 C -50 -50, -180 -80, -240 -30 C -250 30, -160 50, -10 30 Z" fill="url(#leafGrad)" stroke="#2E6624" stroke-width="6" stroke-linejoin="round"/>
+          <path d="M 0 0 C 50 -50, 180 -80, 240 -30 C 250 30, 160 50, 10 30 Z" fill="url(#leafGrad)" stroke="#2E6624" stroke-width="6" stroke-linejoin="round"/>
+          <path d="M -25 -5 C -45 -90, -10 -150, 0 -160 C 10 -150, 45 -90, 25 -5 C 10 10, -10 10, -25 -5 Z" fill="url(#leafGrad)" stroke="#2E6624" stroke-width="6" stroke-linejoin="round"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DEMO VIDEO ============ -->
+<section class="video-section" id="demo">
+  <div class="section-inner">
+    <span class="section-eyebrow">The demo</span>
+    <h2 class="section-title">See it <em>actually</em> work.</h2>
+    <p class="section-lede">
+      Filmed on a real Samsung Galaxy A17 5G, not an emulator. Watch the Claude vision scan moment — point the camera, get a real diagnosis in seconds.
+    </p>
+    <div class="video-wrap">
+      <iframe src="https://www.youtube.com/embed/RDK8aizjWwA" title="Tomato Companion demo video" allowfullscreen></iframe>
+    </div>
+    <p class="video-caption">Demo · 3:41 · Samsung Galaxy A17 5G · Android 16</p>
+  </div>
+</section>
+
+<!-- ============ PERSONA ============ -->
+<section class="persona-section">
+  <div class="section-inner">
+    <div class="persona-grid">
+      <div>
+        <img src="storyboard/persona_maya.png" alt="Maya persona card — 24, student, London" class="persona-image">
+      </div>
+      <div>
+        <span class="section-eyebrow">Built for Maya</span>
+        <h2 class="section-title">And anyone like her.</h2>
+        <p class="section-lede">
+          The app was designed around a single primary user: a 24-year-old student in a London flat with a balcony, zero experience, and zero patience for generic gardening advice.
+        </p>
+        <blockquote class="persona-quote">
+          "I want to grow my own food, but every guide assumes I have a garden. I have a balcony, two pots, and zero experience."
+        </blockquote>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section class="how-section" id="how">
+  <div class="section-inner">
+    <span class="section-eyebrow">How it works</span>
+    <h2 class="section-title">Three moments, <em>one app.</em></h2>
+    <p class="section-lede">
+      Every screen maps to a real moment in a grower's day. No feature without a reason.
+    </p>
+    <div class="steps-grid">
+      <div class="step">
+        <div class="step-number">01</div>
+        <div class="step-icon">🌤️</div>
+        <h3>Morning glance</h3>
+        <p>The Today screen reads your location, pulls live weather from Open-Meteo, and tells you exactly what to do today. Water? Skip? Worry about frost? It knows.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">02</div>
+        <div class="step-icon">📸</div>
+        <h3>Something looks wrong</h3>
+        <p>Tap Scan, point your camera. Claude's vision model identifies the problem — nitrogen deficiency, pests, ripeness — and answers like a knowledgeable friend, not a database.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">03</div>
+        <div class="step-icon">🍅</div>
+        <h3>Six weeks later</h3>
+        <p>Your garden tracks every plant from seedling through harvest. Daily actions earn points that redeem at real partners — B&Q, RHS, and more.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STORYBOARD ============ -->
+<section class="storyboard-section">
+  <div class="section-inner">
+    <span class="section-eyebrow">Maya's journey</span>
+    <h2 class="section-title">From frustration to <em>first harvest.</em></h2>
+    <p class="section-lede">
+      The storyboard the app was designed around — four panels capturing the emotional arc from "stuck and stressed" to "competent and proud".
+    </p>
+    <img src="storyboard/storyboard.png" alt="Storyboard - Maya's journey across four panels" class="storyboard-image">
+  </div>
+</section>
+
+<!-- ============ SCREENSHOTS ============ -->
+<section class="screenshots-section" id="screens">
+  <div class="section-inner">
+    <span class="section-eyebrow">The product</span>
+    <h2 class="section-title">Real screens, <em>real device.</em></h2>
+    <p class="section-lede">
+      Every screenshot below is from a Samsung Galaxy A17 5G running the production build. No mockups, no emulator.
+    </p>
+    <div class="screenshots-grid">
+      <div class="shot">
+        <img src="screenshots/00_launcher_icon.jpeg" alt="Custom launcher icon on the Android home screen">
+        <h4>Custom launcher</h4>
+        <p>Bespoke 🍅 icon, "Tomato Companion" label</p>
+      </div>
+      <div class="shot">
+        <img src="screenshots/00_splash.jpeg" alt="Tomato-red splash screen on app launch">
+        <h4>Splash screen</h4>
+        <p>Brand-aligned splash on every cold launch</p>
+      </div>
+      <div class="shot">
+        <img src="screenshots/01_home.jpeg" alt="Today screen with live London weather and tasks">
+        <h4>Today screen</h4>
+        <p>Live weather, contextual advice, today's tasks</p>
+      </div>
+      <div class="shot">
+        <img src="screenshots/02_varieties.jpeg" alt="Varieties grid showing 27 UK-friendly tomato types">
+        <h4>27 varieties</h4>
+        <p>UK-friendly selection with Hero animations</p>
+      </div>
+      <div class="shot">
+        <img src="screenshots/03_scan.jpeg" alt="Scan tab with Claude vision AI response card">
+        <h4>AI scan</h4>
+        <p>Real Claude vision, plain English diagnosis</p>
+      </div>
+      <div class="shot">
+        <img src="screenshots/04_garden.jpeg" alt="My Garden screen tracking planted tomatoes">
+        <h4>My Garden</h4>
+        <p>Per-plant tracking, seedling → harvest</p>
+      </div>
+      <div class="shot">
+        <img src="screenshots/05_rewards.jpeg" alt="Rewards screen showing points and partner vouchers">
+        <h4>Rewards</h4>
+        <p>Points redeem at B&Q, RHS, partner brands</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TECH STACK ============ -->
+<section class="stack-section">
+  <div class="section-inner">
+    <span class="section-eyebrow">Built with</span>
+    <h2 class="section-title">A stack chosen <em>on purpose.</em></h2>
+    <p class="section-lede">
+      Every technology in this app earns its place. No frameworks for the sake of frameworks — each choice is justified by what it lets the app do.
+    </p>
+    <div class="stack-grid">
+      <div class="stack-card">
+        <h4>Flutter</h4>
+        <p>Single codebase, native performance, Material 3 design — Android and iOS from one Dart project.</p>
+      </div>
+      <div class="stack-card">
+        <h4>Anthropic Claude</h4>
+        <p>Vision API that returns advice, not labels. The conversational tone matches the companion voice of the app.</p>
+      </div>
+      <div class="stack-card">
+        <h4>Open-Meteo</h4>
+        <p>Free weather API with excellent UK forecast accuracy. No commercial dependencies, no rate-limit anxiety.</p>
+      </div>
+      <div class="stack-card">
+        <h4>Firebase Auth</h4>
+        <p>Cross-device garden sync without standing up a backend. Sign in once, your plants follow you.</p>
+      </div>
+      <div class="stack-card">
+        <h4>Geolocator</h4>
+        <p>Native location services that power the connected-environment story — weather where you actually are.</p>
+      </div>
+      <div class="stack-card">
+        <h4>Material 3</h4>
+        <p>Hero animations between Varieties → Detail. Staggered list transitions. Native feel on every Android.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="cta-section">
+  <div class="section-inner">
+    <span class="section-eyebrow">Built solo, for CASA0015</span>
+    <h2 class="section-title">Explore the <em>source</em>, watch the <em>demo</em>.</h2>
+    <p class="section-lede" style="margin-left: auto; margin-right: auto;">
+      The full source code, design documentation, UX testing, and architecture decisions are open on GitHub.
+    </p>
+    <div class="hero-cta-row">
+      <a href="https://github.com/Madina1219/Tomato-Cultivation-Partner" target="_blank" rel="noopener" class="btn btn-primary">View on GitHub</a>
+      <a href="https://youtu.be/RDK8aizjWwA" target="_blank" rel="noopener" class="btn btn-secondary">▶ Watch demo</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-brand">🍅 Tomato Companion</div>
+      <p class="footer-bio">
+        Built solo by <strong>Madina Diallo</strong> for CASA0015 Mobile Systems &amp; Interactions, MSc Connected Environments, UCL Centre for Advanced Spatial Analysis, 2025/26.
+      </p>
+    </div>
+    <div class="footer-col">
+      <h5>Project</h5>
+      <ul>
+        <li><a href="https://github.com/Madina1219/Tomato-Cultivation-Partner" target="_blank" rel="noopener">GitHub repository</a></li>
+        <li><a href="https://youtu.be/RDK8aizjWwA" target="_blank" rel="noopener">Demo video</a></li>
+        <li><a href="https://github.com/Madina1219/Tomato-Cultivation-Partner/blob/main/docs/design.md" target="_blank" rel="noopener">Design docs</a></li>
+        <li><a href="https://github.com/Madina1219/Tomato-Cultivation-Partner/blob/main/docs/UX_TESTING.md" target="_blank" rel="noopener">UX testing</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Built with</h5>
+      <ul>
+        <li><a href="https://flutter.dev" target="_blank" rel="noopener">Flutter</a></li>
+        <li><a href="https://www.anthropic.com" target="_blank" rel="noopener">Anthropic Claude</a></li>
+        <li><a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a></li>
+        <li><a href="https://firebase.google.com" target="_blank" rel="noopener">Firebase</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    © 2026 Madina Diallo · CASA0015 · UCL Centre for Advanced Spatial Analysis<br>
+    AI assistance disclosed in the <a href="https://github.com/Madina1219/Tomato-Cultivation-Partner#-declaration-of-authorship" style="color: var(--tomato-300);">Declaration of Authorship</a>
+  </div>
+</footer>
+
+<!-- ============ FADE-IN ON SCROLL ============ -->
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('in-view');
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.section-inner, .step, .shot, .stack-card').forEach(el => {
+  el.classList.add('fade-up');
+  observer.observe(el);
+});
+</script>
+
+</body>
+</html>
