@@ -70,9 +70,9 @@ The app combines:
 
 ---
 
-## 👤 The user — meet Maya
+## 👤 The user - meet Maya
 
-User-centred design started with a primary persona, derived from informal conversations with first-time growers in London during the design phase (October 2025).
+User-centred design started with a primary persona, derived from informal conversations with first-time growers in London during the design phase (January 2026).
 
 ![Maya persona](docs/storyboard/persona_maya.png)
 
