@@ -27,9 +27,6 @@
 4. [Storyboard - Maya's journey](#-storyboard--mayas-journey)
 <<<<<<< HEAD
 5. [Screenshots - real Samsung A17 5G](#-screenshots--real-device-samsung-a17-5g)
-=======
-5. [Screenshots -  real Samsung A17 5G](#-screenshots--real-device-samsung-a17-5g)
->>>>>>> 76ce79742ac7b7a1200f19f31ec7160198b255f6
 6. [Features](#-features)
 7. [Architecture & technology stack](#%EF%B8%8F-architecture--technology-stack)
 8. [Installation](#-installation)
