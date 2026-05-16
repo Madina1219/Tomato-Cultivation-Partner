@@ -79,7 +79,7 @@ The storyboard below captures the emotional arc the app was designed around: fro
 
 | Panel | Moment | App response |
 |---|---|---|
-| **1** | Maya is stuck. Yellow leaves, conflicting Google answers. | She doesn't have the app yet — this is the pain point that brings her in. |
+| **1** | Maya is stuck. Yellow leaves, conflicting Google answers. | She doesn't have the app yet - this is the pain point that brings her in. |
 | **2** | Opens Tomato Companion. The Today screen already knows her location and today's weather. | Geolocator + Open-Meteo → contextual advice card: *"Skip watering, rain at 6pm"*. |
 | **3** | Taps Scan. Points camera at her plant. | Anthropic Claude vision identifies nitrogen deficiency in conversational language. |
 | **4** | Six weeks of guided daily care → her first homegrown tomatoes. | Points earned along the way redeem for a real B&Q voucher. She'll grow again. |
