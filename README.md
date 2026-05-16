@@ -25,7 +25,6 @@
 2. [Demo video](#-demo-video)
 3. [The user - meet Maya](#-the-user--meet-maya)
 4. [Storyboard - Maya's journey](#-storyboard--mayas-journey)
-<<<<<<< HEAD
 5. [Screenshots - real Samsung A17 5G](#-screenshots--real-device-samsung-a17-5g)
 6. [Features](#-features)
 7. [Architecture & technology stack](#%EF%B8%8F-architecture--technology-stack)
@@ -40,22 +39,17 @@
 
 ## 🌱 About this app
 
-**Tomato Companion** is a Flutter mobile application built for the CASA0015 *Mobile Systems & Interactions* module at UCL CASA. It helps urban tomato growers, particularly UK balcony, windowsill, and small-garden growers, succeed with their plants from seed to harvest.
+**Tomato Companion** is a Flutter mobile application built for the CASA0015 *Mobile Systems & Interactions* module at UCL CASA. It helps urban tomato growers - particularly UK balcony, windowsill, and small-garden growers - succeed with their plants from seed to harvest.
 
 The app combines:
 
 - 🌤️ **Live local weather** from Open-Meteo, mapped to *what to do today*
-<<<<<<< HEAD
 - 📸 **Claude vision diagnosis** - point your camera at any plant, get conversational AI advice
-- 🍅 **27 curated tomato varieties** matched to growing locations
-=======
-- 📸 **Claude vision diagnosis** -  point your camera at any plant, get conversational AI advice
 - 🍅 **27 curated tomato varieties** matched to UK growing windows
->>>>>>> 76ce79742ac7b7a1200f19f31ec7160198b255f6
 - 🌿 **Per-plant garden tracking** from seedling to harvest
 - 🎁 **A rewards loop** that redeems for real partners (B&Q, Royal Horticultural Society)
 
-**Why it exists**: First-time tomato growers fail at the same handful of things :  wrong variety for the climate, missed watering, panicking over normal yellow leaves, abandoning by mid-summer. The information *exists*, but it's scattered, generic, and rarely tells you what to do *today, in your weather, with your plant*. Tomato Companion compresses that into a pocket assistant that knows where you are and what you're growing.
+**Why it exists**: First-time UK tomato growers fail at the same handful of things:wrong variety for the climate, missed watering, panicking over normal yellow leaves, abandoning by mid-summer. The information *exists*, but it's scattered, generic, and rarely tells you what to do *today, in your weather, with your plant*. Tomato Companion compresses that into a pocket assistant that knows where you are and what you're growing.
 
 ---
 
@@ -63,7 +57,7 @@ The app combines:
 
 [![Watch the demo on YouTube](https://i.ytimg.com/vi/RDK8aizjWwA/maxresdefault.jpg)](https://youtu.be/RDK8aizjWwA)
 
-> 📺 Click the thumbnail above to watch the narrated walkthrough-filmed on a **real Samsung Galaxy A17 5G** running Android 16. Includes the live Claude vision scan moment.
+> 📺 Click the thumbnail above to watch the narrated walkthrough - filmed on a **real Samsung Galaxy A17 5G** running Android 16. Includes the live Claude vision scan moment.
 
 ---
 
@@ -90,7 +84,7 @@ The storyboard below captures the emotional arc the app was designed around: fro
 | **3** | Taps Scan. Points camera at her plant. | Anthropic Claude vision identifies nitrogen deficiency in conversational language. |
 | **4** | Six weeks of guided daily care → her first homegrown tomatoes. | Points earned along the way redeem for a real B&Q voucher. She'll grow again. |
 
-This four-beat narrative - *frustration → first relief → real diagnosis → competence and reward*, drives every design decision in the app, from the warm "Companion says…" voice in the AI response card to the deliberate restraint of using only one accent colour throughout.
+This four-beat narrative - *frustration → first relief → real diagnosis → competence and reward* - drives every design decision in the app, from the warm "Companion says…" voice in the AI response card to the deliberate restraint of using only one accent colour throughout.
 
 ---
 
@@ -296,7 +290,7 @@ The project draws on the following resources for code, plugins, and design inspi
 2. **Anthropic**. (2025). *Claude API documentation — vision capabilities*. Available at: <https://docs.anthropic.com/en/docs/build-with-claude/vision>
 3. **Open-Meteo**. (2025). *Free weather forecast API documentation*. Available at: <https://open-meteo.com/en/docs>
 4. **Material Design Team**. (2025). *Material Design 3 specification*. Google. Available at: <https://m3.material.io>
-5. **Royal Horticultural Society**. (2024). *Tomatoes - growing guide*. London: RHS. Available at: <https://www.rhs.org.uk/vegetables/tomatoes/grow-your-own>
+5. **Royal Horticultural Society**. (2024). *Tomatoes — growing guide*. London: RHS. Available at: <https://www.rhs.org.uk/vegetables/tomatoes/grow-your-own>
 6. **flutter_launcher_icons** (Mark O'Sullivan). Version 0.14.1. Available at: <https://pub.dev/packages/flutter_launcher_icons>
 7. **flutter_native_splash** (Henry Tabima). Version 2.4.1. Available at: <https://pub.dev/packages/flutter_native_splash>
 
@@ -316,15 +310,15 @@ For questions about the code or design choices, please open an issue on the repo
 
 ## 📝 Declaration of authorship
 
-I, Madina Diallo, confirm that the work presented in this assessment is my own. Where information has been derived from other sources, I confirm that this has been indicated in the work above (see the Bibliography & Credits section).
+I, **Madina Diallo**, confirm that the work presented in this assessment is my own. Where information has been derived from other sources, I confirm that this has been indicated in the work above (see the Bibliography & Credits section).
 
-Use of AI assistance. In line with UCL's policy on the use of generative AI in assessments, I disclose that Anthropic's Claude (Opus 4.7) was used as an AI coding assistant throughout the development of this application.
+**Use of AI assistance.** In line with UCL's policy on the use of generative AI in assessments, I disclose that **Anthropic's Claude (Opus 4.7)** was used as an AI coding assistant throughout the development of this application.
 
 All design decisions, the choice of features, the user persona and storyboard, the visual identity, the variety database curation, and the integration of all components into a working application are my own work. Every AI-suggested code change was reviewed, understood, modified where needed, and committed by me. The same applies to the AI API key configuration - the Anthropic API key used for the scan feature is my own, obtained through an Anthropic developer account.
 
-The mobile application source code, design documents, screenshots, demo video, and microsite are all produced by me for CASA0015: Mobile Systems & Interactions, 2025/26.
+The mobile application source code, design documents, screenshots, demo video, and microsite are all produced by me for **CASA0015: Mobile Systems & Interactions, 2025/26**.
 
-Digitally signed: Madina Diallo
+**Digitally signed:** Madina Diallo
 
 ---
 
